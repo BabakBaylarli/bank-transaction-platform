@@ -174,7 +174,7 @@ To run **everything, web app included, exactly as in production** (Caddy in fron
 use the production compose file with `DOMAIN=localhost`. See
 [deploy/DEPLOY.md](deploy/DEPLOY.md#troubleshooting) (*Test the production stack locally*).
 
-**Demo data** (seeded in the `dev` profile):
+**Demo data** (seeded by the `dev` profile; in production by `DEMO_MODE=true` under the `prod` profile):
 
 | User | Password | Role | Accounts |
 |---|---|---|---|

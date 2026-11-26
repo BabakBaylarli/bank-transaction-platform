@@ -19,7 +19,11 @@ fi
 . "$ROOT/deploy/lib.sh"
 load_env .env
 
-for var in DOMAIN ACME_EMAIL JWT_SECRET POSTGRES_PASSWORD KIBANA_PASSWORD SEED_ADMIN_PASSWORD SEED_CUSTOMER_PASSWORD; do
+REQUIRED=(DOMAIN ACME_EMAIL JWT_SECRET POSTGRES_PASSWORD KIBANA_PASSWORD)
+if [[ "${DEMO_MODE:-true}" == "true" ]]; then
+  REQUIRED+=(SEED_ADMIN_PASSWORD SEED_CUSTOMER_PASSWORD)
+fi
+for var in "${REQUIRED[@]}"; do
   if [[ -z "${!var:-}" ]]; then
     echo "Required variable $var is empty in .env" >&2
     exit 1
@@ -81,9 +85,11 @@ URL="${PUBLIC_ORIGIN:-https://${DOMAIN}}"
 log "Smoke test against ${URL}"
 code="$(curl -ks -o /dev/null -w '%{http_code}' "${URL}/")" || code="000"
 echo "  frontend            ${URL}/  -> HTTP ${code}"
-code="$(curl -ks -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' \
-  -d '{"username":"alice","password":"'"${SEED_CUSTOMER_PASSWORD}"'"}' "${URL}/api/v1/auth/login")" || code="000"
-echo "  login (alice)       ${URL}/api/v1/auth/login -> HTTP ${code}"
+if [[ "${DEMO_MODE:-true}" == "true" ]]; then
+  code="$(curl -ks -o /dev/null -w '%{http_code}' -X POST -H 'Content-Type: application/json' \
+    -d '{"username":"alice","password":"'"${SEED_CUSTOMER_PASSWORD}"'"}' "${URL}/api/v1/auth/login")" || code="000"
+  echo "  login (alice)       ${URL}/api/v1/auth/login -> HTTP ${code}"
+fi
 code="$(curl -ks -o /dev/null -w '%{http_code}' "${URL}/kibana/")" || code="000"
 echo "  kibana (no auth)    ${URL}/kibana/ -> HTTP ${code} (401 expected)"
 

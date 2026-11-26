@@ -24,16 +24,18 @@ x-logging: &logging
 x-spring-service: &spring-service
   <<: [*restart, *logging]
   environment: &spring-env
-    # the "dev" profile only enables seeding of the demo users/accounts (DemoDataSeeder)
-    SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+    SPRING_PROFILES_ACTIVE: prod
+    # public demo: seed admin/alice/bob (and re-seed after the nightly reset)
+    DEMO_MODE: ${DEMO_MODE:-true}
     JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
     DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-bank}
     DB_USERNAME: ${POSTGRES_USER:-bank}
     DB_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
     KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     ELASTICSEARCH_URIS: http://elasticsearch:9200
-    SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?Set SEED_ADMIN_PASSWORD in .env}
-    SEED_CUSTOMER_PASSWORD: ${SEED_CUSTOMER_PASSWORD:?Set SEED_CUSTOMER_PASSWORD in .env}
+    # required only while DEMO_MODE=true (transaction-service refuses to seed without them)
+    SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+    SEED_CUSTOMER_PASSWORD: ${SEED_CUSTOMER_PASSWORD:-}
     LOGGING_STRUCTURED_FORMAT_CONSOLE: ecs
     # container limit 768 MB -> heap up to ~576 MB; Serial GC is the leanest choice on 2 vCPUs
     JAVA_TOOL_OPTIONS: -XX:MaxRAMPercentage=75 -XX:+UseSerialGC -XX:+ExitOnOutOfMemoryError -Xss512k
