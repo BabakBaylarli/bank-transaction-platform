@@ -1,6 +1,8 @@
+<p align="center"><img src="docs/images/cover.png" alt="Bank Transaction Platform" width="100%"></p>
+
 # Bank Transaction Platform
 
-[![CI](https://github.com/OWNER/bank-transaction-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/bank-transaction-platform/actions/workflows/ci.yml)
+[![CI](https://github.com/BabakBaylarli/bank-transaction-platform/actions/workflows/ci.yml/badge.svg)](https://github.com/BabakBaylarli/bank-transaction-platform/actions/workflows/ci.yml)
 ![Java 21](https://img.shields.io/badge/Java-21-007396?logo=openjdk&logoColor=white)
 ![Spring Boot 3.5](https://img.shields.io/badge/Spring%20Boot-3.5-6DB33F?logo=springboot&logoColor=white)
 ![Apache Kafka](https://img.shields.io/badge/Apache%20Kafka-KRaft-231F20?logo=apachekafka&logoColor=white)
