@@ -1,0 +1,79 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 220 20% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 243 75% 59%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 14% 94%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 220 14% 94%;
+    --muted-foreground: 220 9% 42%;
+    --accent: 243 75% 96%;
+    --accent-foreground: 243 60% 40%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 69% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 45%;
+    --warning-foreground: 0 0% 100%;
+    --border: 220 13% 89%;
+    --input: 220 13% 86%;
+    --ring: 243 75% 59%;
+    --radius: 0.75rem;
+    --chart-1: 243 75% 59%;
+    --chart-2: 152 60% 40%;
+    --chart-3: 32 95% 52%;
+    --chart-4: 0 72% 55%;
+  }
+
+  .dark {
+    --background: 224 30% 7%;
+    --foreground: 210 30% 96%;
+    --card: 224 28% 10%;
+    --card-foreground: 210 30% 96%;
+    --popover: 224 28% 10%;
+    --popover-foreground: 210 30% 96%;
+    --primary: 243 85% 68%;
+    --primary-foreground: 224 30% 7%;
+    --secondary: 223 22% 16%;
+    --secondary-foreground: 210 30% 96%;
+    --muted: 223 22% 16%;
+    --muted-foreground: 218 14% 65%;
+    --accent: 243 40% 20%;
+    --accent-foreground: 243 90% 85%;
+    --destructive: 0 70% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 152 55% 45%;
+    --success-foreground: 224 30% 7%;
+    --warning: 38 90% 55%;
+    --warning-foreground: 224 30% 7%;
+    --border: 223 20% 18%;
+    --input: 223 20% 22%;
+    --ring: 243 85% 68%;
+    --chart-1: 243 85% 70%;
+    --chart-2: 152 55% 50%;
+    --chart-3: 32 95% 60%;
+    --chart-4: 0 75% 62%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
