@@ -56,11 +56,19 @@ export default function TransferPage() {
 
   const form = useForm<FormInput>({
     resolver: zodResolver(transferSchema),
-    defaultValues: { sourceAccount: params.get('from') ?? '', targetAccount: '', amount: '', description: '' },
+    defaultValues: {
+      sourceAccount: params.get('from') ?? '',
+      targetAccount: '',
+      amount: '',
+      description: '',
+    },
   });
   const { errors } = form.formState;
   const sourceNumber = form.watch('sourceAccount');
-  const source = useMemo(() => accounts.data?.find((a) => a.number === sourceNumber), [accounts.data, sourceNumber]);
+  const source = useMemo(
+    () => accounts.data?.find((a) => a.number === sourceNumber),
+    [accounts.data, sourceNumber],
+  );
 
   // preselect the first account once accounts are loaded
   useEffect(() => {
@@ -141,7 +149,9 @@ export default function TransferPage() {
             <CardTitle className="flex items-center gap-2">
               <ArrowLeftRight className="h-4 w-4" /> New transfer
             </CardTitle>
-            <CardDescription>Each submit carries a unique Idempotency-Key, so a retry can never pay twice.</CardDescription>
+            <CardDescription>
+              Each submit carries a unique Idempotency-Key, so a retry can never pay twice.
+            </CardDescription>
           </CardHeader>
           <CardContent>
             {accounts.isLoading ? (
@@ -184,7 +194,11 @@ export default function TransferPage() {
                     {...form.register('targetAccount')}
                   />
                 </FormField>
-                <FormField id="amount" label={`Amount${source ? ` (${source.currency})` : ''}`} error={errors.amount?.message}>
+                <FormField
+                  id="amount"
+                  label={`Amount${source ? ` (${source.currency})` : ''}`}
+                  error={errors.amount?.message}
+                >
                   <Input
                     id="amount"
                     inputMode="decimal"
@@ -194,8 +208,17 @@ export default function TransferPage() {
                     {...form.register('amount')}
                   />
                 </FormField>
-                <FormField id="description" label="Description (optional)" error={errors.description?.message}>
-                  <Input id="description" placeholder="e.g. Rent for May" disabled={!!transactionId} {...form.register('description')} />
+                <FormField
+                  id="description"
+                  label="Description (optional)"
+                  error={errors.description?.message}
+                >
+                  <Input
+                    id="description"
+                    placeholder="e.g. Rent for May"
+                    disabled={!!transactionId}
+                    {...form.register('description')}
+                  />
                 </FormField>
                 {transactionId ? (
                   <Button type="button" variant="outline" className="w-full" onClick={reset}>

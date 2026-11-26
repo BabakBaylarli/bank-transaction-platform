@@ -21,8 +21,14 @@ export function TransferStatus({ transaction }: { transaction: Transaction }) {
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-sm text-muted-foreground">Transfer</p>
-          <Money amount={transaction.amount} currency={transaction.currency} className="text-2xl font-semibold" />
-          <p className="mt-1 font-mono text-xs text-muted-foreground">to {formatIban(transaction.targetAccount)}</p>
+          <Money
+            amount={transaction.amount}
+            currency={transaction.currency}
+            className="text-2xl font-semibold"
+          />
+          <p className="mt-1 font-mono text-xs text-muted-foreground">
+            to {formatIban(transaction.targetAccount)}
+          </p>
         </div>
         <StatusBadge status={transaction.status} />
       </div>
@@ -40,7 +46,12 @@ export function TransferStatus({ transaction }: { transaction: Transaction }) {
                   reached && !rejected && done && 'bg-success',
                 )}
               />
-              <p className={cn('flex items-center gap-1 text-xs', reached ? 'text-foreground' : 'text-muted-foreground')}>
+              <p
+                className={cn(
+                  'flex items-center gap-1 text-xs',
+                  reached ? 'text-foreground' : 'text-muted-foreground',
+                )}
+              >
                 {current && <Loader2 className="h-3 w-3 animate-spin" />}
                 {label}
               </p>
@@ -53,7 +64,9 @@ export function TransferStatus({ transaction }: { transaction: Transaction }) {
         <Alert variant="info">
           <Clock className="h-4 w-4" />
           <AlertTitle>Processing…</AlertTitle>
-          <AlertDescription>The transfer is on its way through Kafka. This usually takes under a second.</AlertDescription>
+          <AlertDescription>
+            The transfer is on its way through Kafka. This usually takes under a second.
+          </AlertDescription>
         </Alert>
       )}
       {transaction.status === 'COMPLETED' && (
@@ -72,7 +85,9 @@ export function TransferStatus({ transaction }: { transaction: Transaction }) {
             {transaction.rejectionDetail && (
               <p className="mt-1 text-xs text-muted-foreground">Details: {transaction.rejectionDetail}</p>
             )}
-            <p className="mt-1 font-mono text-[11px] text-muted-foreground">Rule: {transaction.rejectionReason}</p>
+            <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+              Rule: {transaction.rejectionReason}
+            </p>
           </AlertDescription>
         </Alert>
       )}

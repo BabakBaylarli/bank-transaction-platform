@@ -27,7 +27,10 @@ export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [error, setError] = useState<string | null>(null);
-  const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { username: '', password: '' } });
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { username: '', password: '' },
+  });
   const { errors, isSubmitting } = form.formState;
 
   const onSubmit = form.handleSubmit(async (values) => {
@@ -66,7 +69,12 @@ export function LoginPage() {
 
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <FormField id="username" label="Username" error={errors.username?.message}>
-          <Input id="username" autoComplete="username" aria-invalid={!!errors.username} {...form.register('username')} />
+          <Input
+            id="username"
+            autoComplete="username"
+            aria-invalid={!!errors.username}
+            {...form.register('username')}
+          />
         </FormField>
         <FormField id="password" label="Password" error={errors.password?.message}>
           <Input

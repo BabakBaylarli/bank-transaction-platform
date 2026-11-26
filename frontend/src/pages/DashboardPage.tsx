@@ -106,7 +106,11 @@ export default function DashboardPage() {
             </Button>
           </CardHeader>
           <CardContent>
-            <TransactionList hits={recent.data?.content} loading={recent.isLoading} myAccounts={accounts.numbers} />
+            <TransactionList
+              hits={recent.data?.content}
+              loading={recent.isLoading}
+              myAccounts={accounts.numbers}
+            />
           </CardContent>
         </Card>
         <Card className="lg:col-span-2">

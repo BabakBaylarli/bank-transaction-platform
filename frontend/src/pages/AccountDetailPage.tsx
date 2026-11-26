@@ -36,7 +36,7 @@ export default function AccountDetailPage() {
 
   return (
     <>
-      <Button variant="ghost" size="sm" asChild className="mb-4 -ml-2">
+      <Button variant="ghost" size="sm" asChild className="-ml-2 mb-4">
         <Link to="/accounts">
           <ArrowLeft /> Accounts
         </Link>
@@ -49,7 +49,11 @@ export default function AccountDetailPage() {
             {balance.isLoading ? (
               <Skeleton className="mt-2 h-9 w-48" />
             ) : balance.data ? (
-              <Money amount={balance.data.balance} currency={balance.data.currency} className="text-3xl font-semibold" />
+              <Money
+                amount={balance.data.balance}
+                currency={balance.data.currency}
+                className="text-3xl font-semibold"
+              />
             ) : (
               <p className="text-3xl font-semibold">—</p>
             )}
@@ -60,12 +64,16 @@ export default function AccountDetailPage() {
                 size="icon"
                 className="h-7 w-7"
                 aria-label="Copy account number"
-                onClick={() => navigator.clipboard?.writeText(number).then(() => toast.success('Account number copied'))}
+                onClick={() =>
+                  navigator.clipboard?.writeText(number).then(() => toast.success('Account number copied'))
+                }
               >
                 <Copy />
               </Button>
             </div>
-            {balance.data && <p className="mt-1 text-xs text-muted-foreground">As of {formatDateTime(balance.data.asOf)}</p>}
+            {balance.data && (
+              <p className="mt-1 text-xs text-muted-foreground">As of {formatDateTime(balance.data.asOf)}</p>
+            )}
           </div>
           <Button asChild>
             <Link to={`/transfer?from=${number}`}>
@@ -81,9 +89,18 @@ export default function AccountDetailPage() {
           <CardDescription>Everything that touched this account</CardDescription>
         </CardHeader>
         <CardContent>
-          <TransactionList hits={history.data?.content} loading={history.isLoading} myAccounts={accounts.numbers} />
+          <TransactionList
+            hits={history.data?.content}
+            loading={history.isLoading}
+            myAccounts={accounts.numbers}
+          />
           {history.data && (
-            <Pagination page={history.data.page} totalPages={history.data.totalPages} total={history.data.totalElements} onPage={setPage} />
+            <Pagination
+              page={history.data.page}
+              totalPages={history.data.totalPages}
+              total={history.data.totalElements}
+              onPage={setPage}
+            />
           )}
         </CardContent>
       </Card>

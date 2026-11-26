@@ -20,7 +20,13 @@ export function Pagination({
         Page {page + 1} of {totalPages} · {total} results
       </span>
       <div className="flex gap-2">
-        <Button variant="outline" size="sm" disabled={page === 0} onClick={() => onPage(page - 1)} aria-label="Previous page">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={page === 0}
+          onClick={() => onPage(page - 1)}
+          aria-label="Previous page"
+        >
           <ChevronLeft /> Prev
         </Button>
         <Button

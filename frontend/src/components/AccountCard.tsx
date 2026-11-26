@@ -23,7 +23,9 @@ export function AccountCard({ account }: { account: Account }) {
     >
       <div className="pointer-events-none absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/10" />
       <div className="flex items-start justify-between">
-        <span className="rounded-md bg-white/15 px-2 py-0.5 text-xs font-semibold tracking-wide">{account.currency}</span>
+        <span className="rounded-md bg-white/15 px-2 py-0.5 text-xs font-semibold tracking-wide">
+          {account.currency}
+        </span>
         <ArrowUpRight className="h-4 w-4 opacity-60 transition-opacity group-hover:opacity-100" />
       </div>
       <div>

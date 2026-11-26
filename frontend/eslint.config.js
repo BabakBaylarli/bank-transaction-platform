@@ -19,7 +19,7 @@ export default tseslint.config(
   },
   {
     // shadcn/ui primitives and context modules export helpers next to components by design
-    files: ['src/components/ui/**', 'src/auth/**', 'src/theme/**', 'src/test/**'],
+    files: ['src/components/ui/**', 'src/auth/**', 'src/theme/**', 'src/test/**', 'src/pages/**'],
     rules: { 'react-refresh/only-export-components': 'off' },
   },
 );

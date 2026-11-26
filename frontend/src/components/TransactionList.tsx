@@ -36,18 +36,24 @@ export function TransactionList({ hits, loading, myAccounts, emptyText = 'No tra
     );
   }
   if (!hits?.length) {
-    return <EmptyState icon={Receipt} title={emptyText} description="Transfers appear here a moment after they are processed." />;
+    return (
+      <EmptyState
+        icon={Receipt}
+        title={emptyText}
+        description="Transfers appear here a moment after they are processed."
+      />
+    );
   }
 
   return (
     <>
-      <div className="hidden md:block">
+      <div className="hidden lg:block">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead>From → To</TableHead>
+              <TableHead className="hidden xl:table-cell">From → To</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Amount</TableHead>
             </TableRow>
@@ -55,14 +61,18 @@ export function TransactionList({ hits, loading, myAccounts, emptyText = 'No tra
           <TableBody>
             {hits.map((hit) => (
               <TableRow key={hit.id}>
-                <TableCell className="whitespace-nowrap text-muted-foreground">{formatDateTime(hit.createdAt)}</TableCell>
+                <TableCell className="whitespace-nowrap text-muted-foreground">
+                  {formatDateTime(hit.createdAt)}
+                </TableCell>
                 <TableCell>
                   <div className="font-medium">{hit.description || 'Transfer'}</div>
                   {hit.rejectionReason && (
-                    <div className="text-xs text-destructive">{REJECTION_MESSAGES[hit.rejectionReason].title}</div>
+                    <div className="text-xs text-destructive">
+                      {REJECTION_MESSAGES[hit.rejectionReason].title}
+                    </div>
                   )}
                 </TableCell>
-                <TableCell className="whitespace-nowrap font-mono text-xs text-muted-foreground">
+                <TableCell className="hidden whitespace-nowrap font-mono text-xs text-muted-foreground xl:table-cell">
                   {shortIban(hit.sourceAccount)} → {shortIban(hit.targetAccount)}
                 </TableCell>
                 <TableCell>
@@ -77,13 +87,17 @@ export function TransactionList({ hits, loading, myAccounts, emptyText = 'No tra
         </Table>
       </div>
 
-      <ul className="divide-y md:hidden">
+      <ul className="divide-y lg:hidden">
         {hits.map((hit) => {
           const dir = direction(hit, myAccounts);
           return (
             <li key={hit.id} className="flex items-center gap-3 py-3">
               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted">
-                {dir === 'in' ? <ArrowDownLeft className="h-4 w-4 text-success" /> : <ArrowUpRight className="h-4 w-4" />}
+                {dir === 'in' ? (
+                  <ArrowDownLeft className="h-4 w-4 text-success" />
+                ) : (
+                  <ArrowUpRight className="h-4 w-4" />
+                )}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{hit.description || 'Transfer'}</p>

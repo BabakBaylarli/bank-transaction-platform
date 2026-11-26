@@ -36,7 +36,8 @@ export function createQueryClient() {
       queries: {
         staleTime: 10_000,
         refetchOnWindowFocus: false,
-        retry: (count, error) => !(error instanceof ApiError && error.status > 0 && error.status < 500) && count < 2,
+        retry: (count, error) =>
+          !(error instanceof ApiError && error.status > 0 && error.status < 500) && count < 2,
       },
     },
   });

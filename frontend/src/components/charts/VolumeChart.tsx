@@ -22,8 +22,21 @@ export function VolumeChart({ data, height = 240 }: { data: VolumePoint[]; heigh
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 4, right: 4, left: -12, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
-          <XAxis dataKey="day" tickFormatter={formatDay} tickLine={false} axisLine={false} fontSize={12} stroke="hsl(var(--muted-foreground))" />
-          <YAxis tickLine={false} axisLine={false} fontSize={12} stroke="hsl(var(--muted-foreground))" width={56} />
+          <XAxis
+            dataKey="day"
+            tickFormatter={formatDay}
+            tickLine={false}
+            axisLine={false}
+            fontSize={12}
+            stroke="hsl(var(--muted-foreground))"
+          />
+          <YAxis
+            tickLine={false}
+            axisLine={false}
+            fontSize={12}
+            stroke="hsl(var(--muted-foreground))"
+            width={56}
+          />
           <Tooltip
             cursor={{ fill: 'hsl(var(--muted))' }}
             contentStyle={{
@@ -37,7 +50,14 @@ export function VolumeChart({ data, height = 240 }: { data: VolumePoint[]; heigh
           />
           <Legend iconType="circle" wrapperStyle={{ fontSize: 12 }} />
           {CURRENCIES.map((c) => (
-            <Bar key={c} dataKey={c} stackId="v" fill={CURRENCY_COLORS[c]} radius={c === 'EUR' ? [4, 4, 0, 0] : 0} />
+            <Bar
+              key={c}
+              dataKey={c}
+              stackId="v"
+              maxBarSize={36}
+              fill={CURRENCY_COLORS[c]}
+              radius={c === 'EUR' ? [4, 4, 0, 0] : 0}
+            />
           ))}
         </BarChart>
       </ResponsiveContainer>

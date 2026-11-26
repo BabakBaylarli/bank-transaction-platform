@@ -32,7 +32,10 @@ import { formatIban } from '@/lib/format';
 const schema = z.object({
   currency: z.enum(['AZN', 'USD', 'EUR']),
   initialDeposit: z
-    .union([z.literal(''), z.coerce.number().min(0, 'Cannot be negative').max(10_000, 'Max 10,000 in the demo')])
+    .union([
+      z.literal(''),
+      z.coerce.number().min(0, 'Cannot be negative').max(10_000, 'Max 10,000 in the demo'),
+    ])
     .optional(),
 });
 type FormValues = z.input<typeof schema>;
@@ -40,7 +43,10 @@ type FormValues = z.input<typeof schema>;
 function OpenAccountDialog() {
   const [open, setOpen] = useState(false);
   const queryClient = useQueryClient();
-  const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: { currency: 'AZN', initialDeposit: '' } });
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { currency: 'AZN', initialDeposit: '' },
+  });
   const { errors } = form.formState;
 
   const mutation = useMutation({
@@ -55,7 +61,8 @@ function OpenAccountDialog() {
 
   const onSubmit = form.handleSubmit((values) => {
     const parsed = schema.parse(values);
-    const deposit = parsed.initialDeposit === '' || parsed.initialDeposit === undefined ? undefined : parsed.initialDeposit;
+    const deposit =
+      parsed.initialDeposit === '' || parsed.initialDeposit === undefined ? undefined : parsed.initialDeposit;
     mutation.mutate({ currency: parsed.currency, initialDeposit: deposit });
   });
 
@@ -122,7 +129,11 @@ export default function AccountsPage() {
   const accounts = useAccounts();
   return (
     <>
-      <PageHeader title="Accounts" description="All your accounts. Click one for its history." actions={<OpenAccountDialog />} />
+      <PageHeader
+        title="Accounts"
+        description="All your accounts. Click one for its history."
+        actions={<OpenAccountDialog />}
+      />
       {accounts.isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[0, 1, 2].map((i) => (
@@ -136,7 +147,11 @@ export default function AccountsPage() {
           ))}
         </div>
       ) : (
-        <EmptyState icon={Wallet} title="No accounts yet" description="Use “Open account” to create your first one." />
+        <EmptyState
+          icon={Wallet}
+          title="No accounts yet"
+          description="Use “Open account” to create your first one."
+        />
       )}
     </>
   );

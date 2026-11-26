@@ -62,10 +62,20 @@ export function RegisterPage() {
       )}
       <form onSubmit={onSubmit} className="space-y-4" noValidate>
         <FormField id="fullName" label="Full name" error={errors.fullName?.message}>
-          <Input id="fullName" autoComplete="name" aria-invalid={!!errors.fullName} {...form.register('fullName')} />
+          <Input
+            id="fullName"
+            autoComplete="name"
+            aria-invalid={!!errors.fullName}
+            {...form.register('fullName')}
+          />
         </FormField>
         <FormField id="username" label="Username" error={errors.username?.message}>
-          <Input id="username" autoComplete="username" aria-invalid={!!errors.username} {...form.register('username')} />
+          <Input
+            id="username"
+            autoComplete="username"
+            aria-invalid={!!errors.username}
+            {...form.register('username')}
+          />
         </FormField>
         <FormField id="password" label="Password" error={errors.password?.message}>
           <Input

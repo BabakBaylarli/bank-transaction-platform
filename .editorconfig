@@ -9,3 +9,6 @@ indent_size = 4
 
 [*.{yml,yaml,json,ndjson}]
 indent_size = 2
+
+[frontend/**]
+indent_size = 2
