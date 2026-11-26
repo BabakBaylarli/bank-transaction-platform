@@ -22,7 +22,7 @@
     <modules>
         <module>common</module>
         <module>transaction-service</module>
-        <!--module>processing-service</module-->
+        <module>processing-service</module>
         <!--module>search-service</module-->
         <!--module>e2e-tests</module-->
     </modules>
