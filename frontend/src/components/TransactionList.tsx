@@ -8,6 +8,7 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDateTime, shortIban } from '@/lib/format';
+import { cn } from '@/lib/utils';
 
 interface Props {
   hits: SearchHit[] | undefined;
@@ -15,6 +16,8 @@ interface Props {
   /** account numbers of the current user - used to show incoming vs outgoing */
   myAccounts?: Set<string>;
   emptyText?: string;
+  /** hide the From → To column (for narrow cards such as the dashboard) */
+  compact?: boolean;
 }
 
 function direction(hit: SearchHit, mine?: Set<string>): 'in' | 'out' | undefined {
@@ -24,8 +27,31 @@ function direction(hit: SearchHit, mine?: Set<string>): 'in' | 'out' | undefined
   return undefined;
 }
 
+/** Only completed transfers moved money: pending/rejected amounts get no +/− and are muted. */
+function AmountCell({ hit, mine, className }: { hit: SearchHit; mine?: Set<string>; className?: string }) {
+  const moved = hit.status === 'COMPLETED';
+  return (
+    <Money
+      amount={hit.amount}
+      currency={hit.currency}
+      sign={moved ? direction(hit, mine) : undefined}
+      className={cn(
+        className,
+        !moved && 'text-muted-foreground',
+        hit.status === 'REJECTED' && 'line-through',
+      )}
+    />
+  );
+}
+
 /** Table on desktop, stacked cards on mobile. */
-export function TransactionList({ hits, loading, myAccounts, emptyText = 'No transactions yet' }: Props) {
+export function TransactionList({
+  hits,
+  loading,
+  myAccounts,
+  emptyText = 'No transactions yet',
+  compact = false,
+}: Props) {
   if (loading) {
     return (
       <div className="space-y-2" aria-busy="true">
@@ -53,7 +79,7 @@ export function TransactionList({ hits, loading, myAccounts, emptyText = 'No tra
             <TableRow>
               <TableHead>Date</TableHead>
               <TableHead>Description</TableHead>
-              <TableHead className="hidden xl:table-cell">From → To</TableHead>
+              {!compact && <TableHead className="hidden xl:table-cell">From → To</TableHead>}
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Amount</TableHead>
             </TableRow>
@@ -72,14 +98,16 @@ export function TransactionList({ hits, loading, myAccounts, emptyText = 'No tra
                     </div>
                   )}
                 </TableCell>
-                <TableCell className="hidden whitespace-nowrap font-mono text-xs text-muted-foreground xl:table-cell">
-                  {shortIban(hit.sourceAccount)} → {shortIban(hit.targetAccount)}
-                </TableCell>
+                {!compact && (
+                  <TableCell className="hidden whitespace-nowrap font-mono text-xs text-muted-foreground xl:table-cell">
+                    {shortIban(hit.sourceAccount)} → {shortIban(hit.targetAccount)}
+                  </TableCell>
+                )}
                 <TableCell>
                   <StatusBadge status={hit.status} />
                 </TableCell>
-                <TableCell className="text-right">
-                  <Money amount={hit.amount} currency={hit.currency} sign={direction(hit, myAccounts)} />
+                <TableCell className="whitespace-nowrap text-right">
+                  <AmountCell hit={hit} mine={myAccounts} />
                 </TableCell>
               </TableRow>
             ))}
@@ -104,7 +132,7 @@ export function TransactionList({ hits, loading, myAccounts, emptyText = 'No tra
                 <p className="text-xs text-muted-foreground">{formatDateTime(hit.createdAt)}</p>
               </div>
               <div className="flex flex-col items-end gap-1">
-                <Money amount={hit.amount} currency={hit.currency} sign={dir} className="text-sm" />
+                <AmountCell hit={hit} mine={myAccounts} className="text-sm" />
                 <StatusBadge status={hit.status} />
               </div>
             </li>

@@ -110,6 +110,7 @@ export default function DashboardPage() {
               hits={recent.data?.content}
               loading={recent.isLoading}
               myAccounts={accounts.numbers}
+              compact
             />
           </CardContent>
         </Card>

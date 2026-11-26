@@ -8,7 +8,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="relative hidden flex-col justify-between overflow-hidden bg-gradient-to-br from-indigo-700 via-violet-700 to-slate-900 p-10 text-white lg:flex">
         <div className="pointer-events-none absolute -right-24 top-24 h-80 w-80 rounded-full bg-white/10 blur-2xl" />
-        <div className="[&_span]:bg-white/15">
+        <div className="[&_span:first-child]:bg-white/15">
           <Logo />
         </div>
         <div className="relative max-w-md space-y-4">
