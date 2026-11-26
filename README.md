@@ -9,13 +9,35 @@
 ![Kibana](https://img.shields.io/badge/Kibana-8.18-E8478B?logo=kibana&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
 ![Testcontainers](https://img.shields.io/badge/tested%20with-Testcontainers-9B489A)
+![React 18](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-06B6D4?logo=tailwindcss&logoColor=white)
+![Caddy](https://img.shields.io/badge/Caddy-HTTPS-1F88C0?logo=caddy&logoColor=white)
 
-An **event-driven money-transfer backend**, built the way real payment systems are built. It runs
-with one command, and every claim below is covered by an automated test.
+An **event-driven money-transfer platform**, built the way real payment systems are built: a Java 21 /
+Spring Boot backend on Kafka, PostgreSQL and Elasticsearch, plus a React dashboard. It runs with one
+command, and every claim below is covered by an automated test.
 
-A customer sends money over a REST API. The transfer is accepted immediately, then checked for
+A customer sends money from the web app. The transfer is accepted immediately, then checked for
 fraud and settled asynchronously over Kafka, and finally becomes searchable in Elasticsearch and
 visible on a Kibana dashboard.
+
+## Live demo
+
+**👉 https://YOUR-SUBDOMAIN.duckdns.org** *(placeholder until deployed)*
+
+| User | Password | What to try |
+|---|---|---|
+| `alice` | `Customer123!` | Send money to Bob (`AZ31BTPX00000000000000000003`) and watch the status go live from *Pending* to *Completed* |
+| `bob` | `Customer123!` | Send 99,999 AZN and see the fraud rule reject it, with the reason shown |
+| `admin` | `Admin123!` | Admin analytics charts and the Kibana dashboard |
+
+The login page has one-click demo buttons, and the demo data is reset every night. It runs on a single
+free Oracle Cloud ARM VM, set up as described in [deploy/DEPLOY.md](deploy/DEPLOY.md).
+
+| Dashboard | Live transfer status | Admin analytics |
+|---|---|---|
+| ![Dashboard](docs/screenshots/frontend-dashboard.png) | ![Transfer](docs/screenshots/frontend-transfer.png) | ![Admin](docs/screenshots/frontend-admin.png) |
 
 ### Real banking problems this project solves
 
@@ -36,7 +58,13 @@ visible on a Kibana dashboard.
 
 ```mermaid
 flowchart LR
-    client([Client / Swagger UI])
+    browser([Browser])
+    swagger([API client / Swagger UI])
+
+    subgraph EDGE[Caddy · HTTPS · rate limits]
+        caddy{{reverse proxy}}
+    end
+    frontend[React SPA<br/>frontend]
 
     subgraph TS[transaction-service :8081]
         api[REST API<br/>auth · accounts · transfers]
@@ -58,8 +86,12 @@ flowchart LR
     es[(Elasticsearch)]
     kibana[Kibana dashboard]
 
-    client -->|JWT| api
-    client -->|JWT| search
+    browser -->|https| caddy
+    caddy -->|/| frontend
+    caddy -->|/api/v1/auth, accounts, transactions| api
+    caddy -->|/api/v1/search| search
+    caddy -->|/kibana · basic auth| kibana
+    swagger -.->|JWT · local dev| api
     api -->|1 tx: transfer + event| pg
     api --- outbox
     relay -->|transactions.created| kafka{{Kafka · KRaft}}
@@ -102,6 +134,8 @@ sequenceDiagram
 | **transaction-service** | Registration/login (JWT), accounts with IBAN-style numbers, idempotent transfers, outbox relay, status updates | `users`, `accounts`, `transactions`, `outbox_events` |
 | **processing-service** | Fraud rules, atomic balance moves, idempotent consumer, retry + DLT | schema `processing` |
 | **search-service** | Builds the Elasticsearch read model from all events; search and admin aggregations | index `transactions` |
+| **frontend** | React SPA: dashboard, accounts, live transfer status, search, admin charts | – |
+| **Caddy** (prod) | Single public entry point: HTTPS, routing by path, rate limits, Kibana basic auth | TLS certificates |
 
 ---
 
@@ -128,6 +162,17 @@ docker compose ps
 | Kafka UI (topics, messages, DLT) | http://localhost:8090 |
 | Kibana "Transactions Overview" dashboard | http://localhost:5601/app/dashboards#/view/transactions-overview |
 | Health | http://localhost:8081/actuator/health (same for 8082 and 8083) |
+
+**Web app (dev server with hot reload).** Requires Node 22. The Vite dev server proxies `/api` to the
+three services, so no CORS setup is needed:
+
+```bash
+cd frontend && npm ci && npm run dev      # → http://localhost:5173
+```
+
+To run **everything, web app included, exactly as in production** (Caddy in front, one origin),
+use the production compose file with `DOMAIN=localhost`. See
+[deploy/DEPLOY.md](deploy/DEPLOY.md#troubleshooting) (*Test the production stack locally*).
 
 **Demo data** (seeded in the `dev` profile):
 
@@ -303,8 +348,44 @@ Unparseable *poison messages* skip the retries and go to the DLT immediately.
 | Integration (Testcontainers) | One service against real Postgres, Kafka and Elasticsearch | outbox → Kafka with the correlation header, status update from a result event, balances moved, poison message → DLT, search filters and authorization |
 | **End-to-end** | `e2e-tests` starts the **three real executable jars** as separate processes and drives them over HTTP only | transfer → processed → `COMPLETED` → searchable, plus a rejection for insufficient funds; the correlation id appears in the processing-service logs |
 
-CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the full `verify` and builds the
-Docker images on every push and pull request.
+**Frontend** (`cd frontend && npm test`): Vitest and Testing Library cover the login flow (demo
+buttons, validation, ProblemDetail errors), the role-based route guards, the API client's error
+mapping, the live transfer status with its rejection reasons, and the chart and filter logic.
+
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs the full Maven `verify`, the
+frontend's lint, format check, tests and build, validates both compose files, and builds every
+Docker image on each push and pull request.
+
+---
+
+## Frontend
+
+React 18 + TypeScript + Vite, Tailwind CSS with shadcn/ui components, React Router, TanStack Query,
+React Hook Form + Zod and Recharts. It supports light and dark mode and is fully responsive: a sidebar
+on desktop and a bottom tab bar on phones.
+
+- **One typed API client** ([`src/api`](frontend/src/api)) mirrors the backend DTOs. Every non-2xx
+  response becomes an `ApiError` that carries the server's RFC 7807 problem detail, and a global
+  TanStack Query handler shows it as a toast.
+- **Auth.** The JWT is kept in memory for requests and mirrored to `localStorage`, so a reload keeps
+  the session. The user is logged out automatically when the token expires or the API answers 401.
+  Route guards enforce the `ADMIN` role.
+- **Transfers.** Every submit sends a fresh `Idempotency-Key` (UUID). The page then polls
+  `GET /transactions/{id}` until the status is `COMPLETED` or `REJECTED`, and explains which fraud
+  rule rejected the transfer.
+- **Search.** Filters live in the URL, so a result list can be shared and survives reloads.
+- **Admin.** Daily totals per status and currency from search-service, the active fraud limits from
+  processing-service, and a link to Kibana.
+
+## Deployment
+
+`docker-compose.prod.yml` runs the whole platform on **one free Oracle Cloud ARM VM**
+(2 OCPU / 12 GB). Every image is multi-arch, and the memory limits add up to about 7.5 GB.
+Only Caddy is public: it handles automatic HTTPS for a DuckDNS domain, routes by path so the browser
+sees a single origin (no CORS, no mixed content), rate-limits login and transfers, and protects
+Kibana with basic auth. A cron job resets the demo data every night.
+
+👉 Step-by-step guide for beginners: **[deploy/DEPLOY.md](deploy/DEPLOY.md)**
 
 ---
 
@@ -317,10 +398,14 @@ bank-transaction-platform/
 ├── processing-service/     fraud rules, ledger updates, retry + DLT
 ├── search-service/         Elasticsearch read model, search and stats
 ├── e2e-tests/              black-box flow test across all services
+├── frontend/               React + TypeScript SPA (Vite, Tailwind, shadcn/ui)
+├── deploy/                 Caddy image, setup-server.sh, deploy.sh, reset-demo.sh, DEPLOY.md
 ├── kibana/                 dashboard.ndjson + init.sh (imported by the kibana-init container)
 ├── docs/screenshots/
-├── docker-compose.yml
-└── .env.example
+├── docker-compose.yml      local development stack
+├── docker-compose.prod.yml single-VM production stack
+├── .env.example
+└── .env.prod.example
 ```
 
 Every service follows the same layering: `controller → service → repository`. DTOs are records,
@@ -332,6 +417,12 @@ separate from the JPA entities, and are mapped with MapStruct.
 
 | | |
 |---|---|
+| Login with demo mode | ![Login](docs/screenshots/frontend-login.png) |
+| Dashboard | ![Dashboard](docs/screenshots/frontend-dashboard.png) |
+| Transfer with live status | ![Transfer](docs/screenshots/frontend-transfer.png) |
+| Transaction search | ![Search](docs/screenshots/frontend-search.png) |
+| Admin analytics | ![Admin](docs/screenshots/frontend-admin.png) |
+| Mobile | ![Mobile](docs/screenshots/frontend-mobile.png) |
 | Swagger UI | ![Swagger](docs/screenshots/swagger.png) |
 | Kafka UI with the DLT | ![Kafka UI](docs/screenshots/kafka-ui.png) |
 | Kibana "Transactions Overview" | ![Kibana](docs/screenshots/kibana-dashboard.png) |
@@ -340,7 +431,13 @@ separate from the JPA entities, and are mapped with MapStruct.
 
 ## Tech stack
 
-Java 21 · Spring Boot 3.5 (Web, Security, Data JPA, Data Elasticsearch, Actuator, Validation) ·
-Spring for Apache Kafka · Apache Kafka 3.9 (KRaft) · PostgreSQL 17 + Flyway · Elasticsearch and
-Kibana 8.18 · JJWT · springdoc-openapi · MapStruct · Lombok · JUnit 5, Mockito, AssertJ,
-Awaitility, Testcontainers · Docker multi-stage builds · GitHub Actions
+**Backend:** Java 21 · Spring Boot 3.5 (Web, Security, Data JPA, Data Elasticsearch, Actuator,
+Validation) · Spring for Apache Kafka · Apache Kafka 3.9 (KRaft) · PostgreSQL 17 + Flyway ·
+Elasticsearch and Kibana 8.18 · JJWT · springdoc-openapi · MapStruct · Lombok · JUnit 5, Mockito,
+AssertJ, Awaitility, Testcontainers
+
+**Frontend:** React 18 · TypeScript · Vite · Tailwind CSS · shadcn/ui (Radix) · React Router ·
+TanStack Query · React Hook Form + Zod · Recharts · Vitest + Testing Library · ESLint + Prettier
+
+**Ops:** Docker multi-stage, multi-arch builds · Caddy (automatic HTTPS, rate limiting) ·
+GitHub Actions · Oracle Cloud Always Free (ARM64)
