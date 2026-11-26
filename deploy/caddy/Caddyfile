@@ -1,0 +1,95 @@
+# Public entry point: automatic HTTPS (Let's Encrypt) for {$DOMAIN}.
+#
+#   /                      -> frontend (static SPA)
+#   /api/v1/search/*       -> search-service
+#   /api/v1/processing/*   -> processing-service
+#   /api/*                 -> transaction-service
+#   /kibana/*              -> Kibana, behind basic auth
+#
+# Everything is served from ONE origin, so the browser never makes cross-origin calls:
+# no CORS configuration in the services and no mixed content.
+{
+	email {$ACME_EMAIL}
+	# the rate_limit directive comes from a plugin, so it needs an explicit position
+	order rate_limit before basic_auth
+}
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	request_body {
+		max_size 1MB
+	}
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		-Server
+	}
+
+	# --- CORS locked to the domain -------------------------------------------------------
+	# Browsers attach an Origin header to cross-origin requests. Only our own origin may call
+	# the API; foreign sites get 403 (and never receive Access-Control-Allow-* headers).
+	@foreignOrigin {
+		path /api/*
+		header Origin *
+		not header Origin {$PUBLIC_ORIGIN}
+	}
+	handle @foreignOrigin {
+		header Content-Type application/problem+json
+		respond `{"type":"https://bank-platform.dev/problems/forbidden-origin","title":"Forbidden origin","status":403,"detail":"Cross-origin requests are not allowed","errorCode":"forbidden-origin"}` 403
+	}
+
+	# --- rate limiting (per client IP) -----------------------------------------------------
+	rate_limit {
+		zone auth {
+			match {
+				path /api/v1/auth/*
+			}
+			key {remote_host}
+			events {$RATE_LIMIT_AUTH_PER_MIN}
+			window 1m
+		}
+		zone transfers {
+			match {
+				method POST
+				path /api/v1/transactions
+			}
+			key {remote_host}
+			events {$RATE_LIMIT_TRANSFERS_PER_MIN}
+			window 1m
+		}
+	}
+
+	# --- routing ---------------------------------------------------------------------------
+	handle /api/v1/search/* {
+		reverse_proxy search-service:8083
+	}
+	handle /api/v1/processing/* {
+		reverse_proxy processing-service:8082
+	}
+	handle /api/* {
+		reverse_proxy transaction-service:8081
+	}
+
+	# Kibana runs with server.basePath=/kibana and rewriteBasePath=true, so the prefix is kept
+	handle /kibana* {
+		basic_auth {
+			{$KIBANA_USER} {$KIBANA_PASSWORD_HASH}
+		}
+		reverse_proxy kibana:5601
+	}
+
+	handle {
+		reverse_proxy frontend:80
+	}
+
+	# rate-limited requests get the same RFC 7807 shape as every other API error
+	handle_errors 429 {
+		header Content-Type application/problem+json
+		respond `{"type":"https://bank-platform.dev/problems/rate-limited","title":"Too many requests","status":429,"detail":"Too many requests - please wait a minute and try again","errorCode":"rate-limited"}` 429
+	}
+}
