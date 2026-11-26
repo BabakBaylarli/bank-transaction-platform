@@ -12,7 +12,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Profile;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.util.StringUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,12 +23,13 @@ import java.time.Clock;
 import java.util.List;
 
 /**
- * Seeds demo users and accounts in the {@code dev} profile (used by docker compose).
+ * Seeds demo users and accounts when {@code app.seed.enabled=true}: always in the {@code dev} profile,
+ * and in {@code prod} only for the public demo ({@code DEMO_MODE=true}).
  * Account numbers are deterministic so the README examples work out of the box.
  */
 @Slf4j
 @Component
-@Profile("dev")
+@ConditionalOnProperty(prefix = "app.seed", name = "enabled", havingValue = "true")
 @RequiredArgsConstructor
 public class DemoDataSeeder implements ApplicationRunner {
 
@@ -40,6 +42,10 @@ public class DemoDataSeeder implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) {
+        if (!StringUtils.hasText(seed.adminPassword()) || !StringUtils.hasText(seed.customerPassword())) {
+            throw new IllegalStateException(
+                    "Demo seeding is enabled but SEED_ADMIN_PASSWORD / SEED_CUSTOMER_PASSWORD are not set");
+        }
         if (userRepository.count() > 0) {
             log.info("Demo data already present - skipping seed");
             return;

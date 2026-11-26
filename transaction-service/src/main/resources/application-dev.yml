@@ -1,5 +1,6 @@
-# Demo data for local runs / docker compose. Never enable this profile in production.
+# Local development / docker-compose.yml: always seed the demo users with well-known passwords.
 app:
   seed:
+    enabled: true
     admin-password: ${SEED_ADMIN_PASSWORD:Admin123!}
     customer-password: ${SEED_CUSTOMER_PASSWORD:Customer123!}

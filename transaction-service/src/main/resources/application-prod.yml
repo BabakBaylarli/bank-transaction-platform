@@ -1,0 +1,19 @@
+# Production profile (docker-compose.prod.yml)
+app:
+  seed:
+    # public demo only: DEMO_MODE=true seeds admin/alice/bob (passwords required, no defaults)
+    enabled: ${DEMO_MODE:false}
+    admin-password: ${SEED_ADMIN_PASSWORD:}
+    customer-password: ${SEED_CUSTOMER_PASSWORD:}
+
+springdoc:
+  # Caddy only routes /api/** publicly; no API docs in production
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+management:
+  endpoint:
+    health:
+      show-details: never

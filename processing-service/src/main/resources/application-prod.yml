@@ -1,0 +1,12 @@
+# Production profile (docker-compose.prod.yml)
+springdoc:
+  # Caddy only routes /api/** publicly; no API docs in production
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
+management:
+  endpoint:
+    health:
+      show-details: never
