@@ -3,7 +3,10 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 type Theme = 'light' | 'dark';
 const STORAGE_KEY = 'btp.theme';
 
-const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({ theme: 'light', toggle: () => {} });
+const ThemeContext = createContext<{ theme: Theme; toggle: () => void }>({
+  theme: 'light',
+  toggle: () => {},
+});
 
 function initialTheme(): Theme {
   if (typeof document !== 'undefined' && document.documentElement.classList.contains('dark')) return 'dark';

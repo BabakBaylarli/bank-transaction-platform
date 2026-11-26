@@ -59,7 +59,10 @@ export function buildUrl(path: string, query?: RequestOptions['query']): string 
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<ApiResponse<T>> {
-  const headers: Record<string, string> = { Accept: 'application/json, application/problem+json', ...options.headers };
+  const headers: Record<string, string> = {
+    Accept: 'application/json, application/problem+json',
+    ...options.headers,
+  };
   if (options.body !== undefined) headers['Content-Type'] = 'application/json';
   const token = tokenProvider();
   if (token) headers.Authorization = `Bearer ${token}`;
@@ -74,7 +77,11 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     });
   } catch (e) {
     if (e instanceof DOMException && e.name === 'AbortError') throw e;
-    throw new ApiError({ status: 0, title: 'Network error', detail: 'Cannot reach the server. Check your connection.' });
+    throw new ApiError({
+      status: 0,
+      title: 'Network error',
+      detail: 'Cannot reach the server. Check your connection.',
+    });
   }
 
   const text = await response.text();
@@ -84,7 +91,11 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     const problem: ProblemDetail =
       json && typeof json === 'object'
         ? { status: response.status, ...(json as Partial<ProblemDetail>) }
-        : { status: response.status, title: response.statusText, detail: `Request failed (${response.status})` };
+        : {
+            status: response.status,
+            title: response.statusText,
+            detail: `Request failed (${response.status})`,
+          };
     if (response.status === 401 && token) onUnauthorized();
     throw new ApiError(problem);
   }
