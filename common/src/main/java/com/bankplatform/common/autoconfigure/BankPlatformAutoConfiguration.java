@@ -3,6 +3,7 @@ package com.bankplatform.common.autoconfigure;
 import com.bankplatform.common.error.GlobalExceptionHandler;
 import com.bankplatform.common.kafka.CorrelationIdRecordInterceptor;
 import com.bankplatform.common.kafka.KafkaEventPublisher;
+import com.bankplatform.common.kafka.KafkaInfrastructureConfiguration;
 import com.bankplatform.common.security.JwtAuthenticationFilter;
 import com.bankplatform.common.security.JwtProperties;
 import com.bankplatform.common.security.JwtSecurityConfigurer;
@@ -20,10 +21,12 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.kafka.KafkaAutoConfiguration;
+import org.springframework.boot.autoconfigure.web.servlet.WebMvcAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.core.Ordered;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.listener.RecordInterceptor;
@@ -35,8 +38,9 @@ import java.time.Duration;
  * Cross-cutting infrastructure every service gets just by depending on {@code common}:
  * JWT validation, RFC 7807 errors, correlation ids (HTTP + Kafka), OpenAPI metadata and a clock.
  */
-@AutoConfiguration(after = KafkaAutoConfiguration.class)
+@AutoConfiguration(after = KafkaAutoConfiguration.class, before = WebMvcAutoConfiguration.class)
 @EnableConfigurationProperties(JwtProperties.class)
+@Import(KafkaInfrastructureConfiguration.class)
 public class BankPlatformAutoConfiguration {
 
     @Bean
