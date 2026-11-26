@@ -5,6 +5,7 @@ import com.bankplatform.common.event.RejectionReason;
 import com.bankplatform.common.event.TransactionStatus;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 
 public record TransactionSearchHit(
@@ -20,4 +21,9 @@ public record TransactionSearchHit(
         Instant createdAt,
         Instant updatedAt
 ) {
+
+    /** Elasticsearch stores amounts as scaled floats; always expose money with two decimals. */
+    public TransactionSearchHit {
+        amount = amount == null ? null : amount.setScale(2, RoundingMode.HALF_UP);
+    }
 }

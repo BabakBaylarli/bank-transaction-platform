@@ -21,7 +21,7 @@ public class TransactionIndexer {
                 .orElseGet(() -> TransactionDocument.empty(event.transactionId()))
                 .apply(event);
         TransactionDocument saved = repository.save(document);
-        log.debug("Indexed {} -> {}", event.transactionId(), saved.getStatus());
+        log.info("Indexed {} -> {}", event.transactionId(), saved.getStatus());
         return saved;
     }
 }
