@@ -40,16 +40,44 @@ jobs:
             e2e-tests/target/e2e-logs/
           retention-days: 7
 
+  frontend:
+    name: Frontend (lint, test, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run format:check
+      - run: npm test
+      - run: npm run build
+
   docker:
     name: Docker images & compose config
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    needs: build
+    needs: [build, frontend]
     steps:
       - uses: actions/checkout@v4
 
       - name: Validate docker-compose.yml
         run: docker compose config --quiet
 
-      - name: Build service images
-        run: docker compose build transaction-service processing-service search-service
+      - name: Validate docker-compose.prod.yml
+        run: |
+          cp .env.prod.example .env
+          sed -i 's/^JWT_SECRET=.*/JWT_SECRET=ci-only-secret-ci-only-secret-ci-only-secret/; s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=ci/; s/^KIBANA_PASSWORD=.*/KIBANA_PASSWORD=ci/' .env
+          docker compose -f docker-compose.prod.yml config --quiet
+
+      - name: Build images
+        run: docker compose -f docker-compose.prod.yml build

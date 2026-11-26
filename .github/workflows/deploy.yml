@@ -1,0 +1,45 @@
+name: Deploy
+
+# Disabled by default: runs only when started by hand AND the repository variable
+# ENABLE_DEPLOY is "true". See deploy/DEPLOY.md ("Optional: deploy from GitHub Actions").
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Branch to deploy
+        default: main
+        required: true
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    if: vars.ENABLE_DEPLOY == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    steps:
+      - name: Configure SSH
+        env:
+          SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
+
+      - name: Pull and deploy on the server
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
+          REF: ${{ inputs.ref }}
+        run: |
+          ssh -i ~/.ssh/deploy_key "$USER@$HOST" \
+            "set -e; cd ${DEPLOY_PATH:-~/bank-transaction-platform}; git fetch origin; git checkout '$REF'; ./deploy/deploy.sh"
